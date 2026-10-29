@@ -1,0 +1,185 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-rag: #f1e8d7;
+  --bg-rag-warm: #ede2cd;
+  --ink-archival: #18221b;
+  --ink-secondary: #3b4232;
+  --ink-muted: #5c5848;
+  --rule-hairline: #4a4b3c;
+  --accent-vermilion: #904035;
+  --accent-botanical: #27291b;
+  --ease-archival: cubic-bezier(0.19, 1, 0.22, 1);
+
+  /* Impeccable measured scaffold custom properties (720x1280 comp frame) */
+  --r-paper-texture-x: 2.220%; --r-paper-texture-y: 1.250%; --r-paper-texture-w: 8.890%; --r-paper-texture-h: 3.750%;
+  --r-header-bar-x: 5.000%; --r-header-bar-y: 1.090%; --r-header-bar-w: 90.000%; --r-header-bar-h: 4.530%;
+  --r-sheet-turn-title-x: 27.780%; --r-sheet-turn-title-y: 1.870%; --r-sheet-turn-title-w: 37.500%; --r-sheet-turn-title-h: 2.810%;
+  --r-sheet-turn-title-cap: 15px; --r-sheet-turn-title-font: 23px;
+  --r-satchel-button-x: 73.330%; --r-satchel-button-y: 1.870%; --r-satchel-button-w: 23.470%; --r-satchel-button-h: 3.130%;
+  --r-specimen-plate-x: 2.500%; --r-specimen-plate-y: 6.090%; --r-specimen-plate-w: 95.000%; --r-specimen-plate-h: 45.620%;
+  --r-species-header-x: 5.000%; --r-species-header-y: 52.340%; --r-species-header-w: 90.000%; --r-species-header-h: 6.090%;
+  --r-species-header-cap: 40px; --r-species-header-font: 58px; --r-species-header-family: 'Mountains of Christmas'; --r-species-header-weight: 400;
+  --r-lore-text-block-x: 5.000%; --r-lore-text-block-y: 58.910%; --r-lore-text-block-w: 90.000%; --r-lore-text-block-h: 11.090%;
+  --r-lore-text-block-cap: 16px; --r-lore-text-block-font: 23px;
+  --r-forage-box-x: 5.000%; --r-forage-box-y: 70.470%; --r-forage-box-w: 90.000%; --r-forage-box-h: 9.690%;
+  --r-forage-label-text-x: 18.330%; --r-forage-label-text-y: 71.250%; --r-forage-label-text-w: 50.280%; --r-forage-label-text-h: 7.970%;
+  --r-forage-label-text-cap: 17px; --r-forage-label-text-font: 24px; --r-forage-label-text-family: 'Petrona'; --r-forage-label-text-weight: 300;
+  --r-forage-cta-button-x: 69.720%; --r-forage-cta-button-y: 72.110%; --r-forage-cta-button-w: 24.440%; --r-forage-cta-button-h: 6.720%;
+  --r-path-row-1-x: 5.000%; --r-path-row-1-y: 80.160%; --r-path-row-1-w: 90.000%; --r-path-row-1-h: 7.190%;
+  --r-path-row-2-x: 5.000%; --r-path-row-2-y: 87.340%; --r-path-row-2-w: 90.000%; --r-path-row-2-h: 6.950%;
+  --r-swipe-footer-x: 5.000%; --r-swipe-footer-y: 94.370%; --r-swipe-footer-w: 90.000%; --r-swipe-footer-h: 4.530%;
+  --r-swipe-footer-cap: 11px; --r-swipe-footer-font: 16px;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-rag);
+  color: var(--ink-archival);
+  font-family: 'Petrona', 'Cormorant Garamond', Georgia, serif;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  caret-color: var(--accent-vermilion);
+  font-variant-numeric: tabular-nums;
+}
+
+nextjs-portal {
+  display: none !important;
+}
+
+::selection {
+  background-color: var(--accent-vermilion);
+  color: var(--bg-rag);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-vermilion);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-rag);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--rule-hairline);
+  border-radius: 0px;
+}
+
+/* Signature Archival Wax-Press & Sheet Motion Grammar */
+.archival-press {
+  transition:
+    transform 0.38s var(--ease-archival),
+    background-color 0.28s var(--ease-archival),
+    box-shadow 0.38s var(--ease-archival),
+    filter 0.28s var(--ease-archival);
+}
+
+.archival-press:active {
+  transform: translateY(1.5px) scale(0.985);
+}
+
+.archival-row {
+  transition:
+    background-color 0.32s var(--ease-archival),
+    padding-left 0.32s var(--ease-archival);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .archival-press,
+  .archival-row {
+    transition: none;
+  }
+}
+
+/* Viewport-locked 100dvh Herbarium Voucher Sheet frame */
+.comp-frame {
+  position: relative;
+  height: 100dvh;
+  max-height: 100dvh;
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: 720 / 1280;
+  margin: 0 auto;
+  overflow: hidden;
+  background-color: #f1e8d7;
+  background-image: url('/assets/plates/paper-texture.png');
+  background-repeat: repeat;
+  background-size: 256px 256px;
+  container-type: inline-size;
+}
+
+.r-paper-texture { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.r-header-bar { position: absolute; left: var(--r-header-bar-x); top: var(--r-header-bar-y); width: var(--r-header-bar-w); height: var(--r-header-bar-h); z-index: 1; }
+.r-sheet-turn-title { position: absolute; left: var(--r-sheet-turn-title-x); top: var(--r-sheet-turn-title-y); width: var(--r-sheet-turn-title-w); height: var(--r-sheet-turn-title-h); z-index: 2; }
+.r-satchel-button { position: absolute; left: var(--r-satchel-button-x); top: var(--r-satchel-button-y); width: var(--r-satchel-button-w); height: var(--r-satchel-button-h); z-index: 2; }
+.r-specimen-plate { position: absolute; left: var(--r-specimen-plate-x); top: var(--r-specimen-plate-y); width: var(--r-specimen-plate-w); height: var(--r-specimen-plate-h); z-index: 1; }
+.r-species-header { position: absolute; left: var(--r-species-header-x); top: var(--r-species-header-y); width: var(--r-species-header-w); height: var(--r-species-header-h); z-index: 2; }
+.r-lore-text-block { position: absolute; left: var(--r-lore-text-block-x); top: var(--r-lore-text-block-y); width: var(--r-lore-text-block-w); height: var(--r-lore-text-block-h); z-index: 2; }
+.r-forage-box { position: absolute; left: var(--r-forage-box-x); top: var(--r-forage-box-y); width: var(--r-forage-box-w); height: var(--r-forage-box-h); z-index: 1; }
+.r-forage-label-text { position: absolute; left: var(--r-forage-label-text-x); top: var(--r-forage-label-text-y); width: var(--r-forage-label-text-w); height: var(--r-forage-label-text-h); z-index: 2; }
+.r-forage-cta-button { position: absolute; left: var(--r-forage-cta-button-x); top: var(--r-forage-cta-button-y); width: var(--r-forage-cta-button-w); height: var(--r-forage-cta-button-h); z-index: 2; }
+.r-path-row-1 { position: absolute; left: var(--r-path-row-1-x); top: var(--r-path-row-1-y); width: var(--r-path-row-1-w); height: var(--r-path-row-1-h); z-index: 2; }
+.r-path-row-2 { position: absolute; left: var(--r-path-row-2-x); top: var(--r-path-row-2-y); width: var(--r-path-row-2-w); height: var(--r-path-row-2-h); z-index: 2; }
+.r-swipe-footer { position: absolute; left: var(--r-swipe-footer-x); top: var(--r-swipe-footer-y); width: var(--r-swipe-footer-w); height: var(--r-swipe-footer-h); z-index: 2; }
+
+/* Content-sized sheets keep field notes readable on small and zoomed screens. */
+.comp-frame {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title satchel"
+    "photo photo"
+    "species species"
+    "lore lore"
+    "forage forage"
+    "collect collect"
+    "path1 path1"
+    "path2 path2"
+    "footer footer";
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  min-height: 100dvh;
+  max-height: none;
+  aspect-ratio: auto;
+  overflow: visible;
+  padding: max(16px, env(safe-area-inset-top)) 20px max(16px, env(safe-area-inset-bottom));
+  column-gap: 12px;
+}
+.comp-frame > [data-region]:not(.r-paper-texture) {
+  position: relative;
+  inset: auto;
+  width: auto;
+  height: auto;
+  min-width: 0;
+}
+.comp-frame .r-header-bar, .comp-frame .r-forage-box { display: none; }
+.comp-frame .r-sheet-turn-title { grid-area: title; justify-content: flex-start; padding: 0; }
+.comp-frame .r-satchel-button { grid-area: satchel; min-height: 44px; padding: 0 14px; }
+.comp-frame .r-specimen-plate { grid-area: photo; margin: 16px -8px 12px; aspect-ratio: 1.2; }
+.comp-frame .r-species-header { grid-area: species; flex-wrap: wrap; gap: 8px; padding: 12px 0; }
+.comp-frame .r-species-header h1 { white-space: normal !important; line-height: 1.1 !important; }
+.comp-frame .r-species-header > div:last-child { border: 0; padding-left: 42px; }
+.comp-frame .r-species-header span { white-space: normal !important; }
+.comp-frame .r-lore-text-block { grid-area: lore; gap: 12px; padding: 18px 0; }
+.comp-frame .r-lore-text-block p { font-size: 16px !important; line-height: 1.55 !important; }
+.comp-frame .r-forage-label-text { grid-area: forage; border: 1px solid var(--rule-hairline); border-bottom: 0; padding: 14px; }
+.comp-frame .r-forage-label-text p { white-space: normal !important; line-height: 1.45 !important; }
+.comp-frame .r-forage-cta-button { grid-area: collect; min-height: 48px; margin-bottom: 12px; }
+.comp-frame .r-path-row-1 { grid-area: path1; }
+.comp-frame .r-path-row-2 { grid-area: path2; }
+.comp-frame .archival-row { min-height: 76px; padding: 12px 0; gap: 12px; }
+.comp-frame .r-swipe-footer { grid-area: footer; min-height: 52px; }
+@media (prefers-reduced-motion: reduce) {
+  .scroll-smooth { scroll-behavior: auto; }
+  .archival-press:active { transform: none; }
+}

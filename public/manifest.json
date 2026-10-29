@@ -1,0 +1,10 @@
+{
+  "name": "Mythos Flora - Botanical Folklore RPG",
+  "short_name": "Mythos Flora",
+  "description": "Mobile-first real-world RPG blending botanical education, world folklore, and open-weight AI.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07120c",
+  "theme_color": "#07120c",
+  "orientation": "portrait"
+}

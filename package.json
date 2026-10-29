@@ -1,0 +1,34 @@
+{
+  "name": "mythos-flora",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Mobile-first real-world botanical RPG powered by open-weight AI (meta-llama/Llama-3.2-11B-Vision-Instruct)",
+  "license": "MIT",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "prebuild": "node scripts/download-bioclip.mjs",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "lucide-react": "^0.460.0",
+    "next": "^15.1.0",
+    "onnxruntime-web": "^1.31.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2"
+  }
+}

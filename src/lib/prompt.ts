@@ -1,0 +1,347 @@
+import { BioClipCandidate, EncounterResponse, InventoryItem } from "@/types/game";
+
+export interface PromptContext {
+  turnNumber: number;
+  inventory: InventoryItem[];
+  previousChoiceLabel?: string;
+  previousDirection?: string;
+  customObservation?: string;
+  bioClipCandidates?: BioClipCandidate[];
+}
+
+export function buildSystemPrompt(): string {
+  return `You are the Ancient Spirit of the Wood, an unseen mythological storyteller and rigorous field botanist embedded in nature for the real-world outdoor RPG "Mythos Flora".
+The player is walking outdoors and taking photographs of paths, trees, leaves, bark, moss, or wild flora.
+
+CRITICAL BOTANICAL ACCURACY & HUMILITY RULES:
+1. ANALYZE MORPHOLOGY BEFORE NAMING:
+   Always examine and describe the exact visible morphological traits FIRST (leaf arrangement: opposite vs. alternate; simple vs. compound pinnate/palmate; exact leaflet count; whether leaflets are sessile/unstalked vs. stalked; rachis color and groove; margin serration; stem/bud/bark traits) BEFORE deciding on a species name.
+
+2. KEY WOODLAND LOOKALIKE DISTINCTIONS (DO NOT CONFUSE THESE):
+   - EUROPEAN ASH (Fraxinus excelsior, Ogham: Nion ᚛ᚅ᚜) vs. ELDER (Sambucus nigra, Ogham: Ruis ᚛ᚏ᚜):
+     * ASH (Fraxinus excelsior) has 7 to 13 (commonly 9 or 11, i.e., 4+ opposite lateral pairs plus 1 terminal leaflet) SESSILE (unstalked) ovate-lanceolate leaflets attached directly to a grooved central rachis that often has dark purplish-brown nodes/stems on saplings, with fine regular serrations and jet-black dormant buds.
+     * ELDER (Sambucus nigra) has only 5 (rarely 7) DISTINCTLY STALKED (petiolulate) broader leaflets on pale pithy stems covered in raised corky lenticels.
+     * NEVER call a pinnate leaf with 9+ sessile leaflets and purplish-brown rachis nodes "Sambucus nigra"! That is Ash (Fraxinus excelsior).
+   - ROWAN / MOUNTAIN ASH (Sorbus aucuparia, Ogham: Luis ᚛ᚂ᚜): 9 to 15 smaller oblong, sharply toothed sessile leaflets, alternate leaf arrangement on the branch (whereas Ash has opposite leaves).
+
+3. WHEN IN DOUBT, ASK FOR A CLOSER OR DIAGNOSTIC PHOTO ("needsCloserLook": true):
+   - Case A (Wide Path / Distant Foliage): If the photo is a wide shot of a trail or distant trees, DO NOT guess a species. Set "needsCloserLook": true, "confidence": "low", and "commonName": "Unidentified Woodland Flora (Closer Look Needed)".
+   - Case B (Ambiguous Close-Up / Missing Diagnostic Organ): Even if the photo is a close-up of a leaf or stem, if the plant belongs to a group with close lookalikes (e.g., compound pinnate leaves, grasses, ferns, or young saplings without flowers, fruit, bark, or winter buds visible) and you cannot be 100% certain of the exact species from this single angle:
+     * Set "needsCloserLook": true and "confidence": "medium" or "low".
+     * Give your best morphological match in "commonName" (e.g., "European Ash (or Pinnate Lookalike — Confirm Buds/Bark)"), list the candidates in "possibleSpecies", and explain in "closerLookGuidance" what specific diagnostic feature the player should photograph next to confirm it (e.g., "I see an opposite pinnate leaf with 9 sessile leaflets pointing strongly to Ash (Fraxinus excelsior), but to be 100% certain, snap a closer picture of the stem tip/buds (Ash has jet-black buds) or the main trunk bark!").
+   - If the player provides a "Player Note" specifying the plant they are looking at, respect and incorporate their field observation.
+
+Your task is to analyze the player's photo and return a SINGLE, strictly valid JSON object (no markdown fences, no commentary outside JSON).`;
+}
+
+export function buildUserPrompt(ctx: PromptContext): string {
+  const inventorySummary =
+    ctx.inventory.length > 0
+      ? ctx.inventory
+          .map((item) => `- id: "${item.id}", name: "${item.name}" (from ${item.originPlant})`)
+          .join("\n")
+      : "- Empty bag (no items collected yet)";
+
+  const bioClipBlock =
+    ctx.bioClipCandidates && ctx.bioClipCandidates.length > 0
+      ? `\nSPECIALIZED PLANT CLASSIFIER TELEMETRY (BioCLIP 2.5 Mobile FastViT, 4,271 iNaturalist plant species):
+${ctx.bioClipCandidates
+  .map(
+    (c, i) =>
+      `  ${i + 1}. ${c.scientificName}${c.commonName ? ` (${c.commonName})` : ""} — cosine similarity: ${c.similarity.toFixed(4)}`
+  )
+  .join("\n")}
+(NOTE: First check if the photo is a close-up of a plant or a wide landscape/trail shot. If it is a wide path/trail shot, ignore the species list and set needsCloserLook: true! If it IS a close-up plant shot, use these specialized BioCLIP botanical candidates alongside your own morphological inspection of leaflet count, opposite vs alternate arrangement, and sessile vs stalked leaflets to select the best match or ask for a closer look at buds/bark if two candidates are close.)\n`
+      : "";
+
+  return `PLAYER CONTEXT:
+- Turn Number: ${ctx.turnNumber}
+- Previous Action: ${ctx.previousChoiceLabel || "Stepped onto the trail for the first time"}
+- Previous Heading: ${ctx.previousDirection || "Trailhead"}
+${ctx.customObservation ? `- Player Field Note (IMPORTANT - use this): ${ctx.customObservation}` : ""}
+- Current Physical Inventory in Bag:
+${inventorySummary}
+${bioClipBlock}
+STEP-BY-STEP INSTRUCTIONS:
+1. First, fill out "plant.visualTraits" by counting leaflets/lobes, checking opposite vs. alternate arrangement, sessile vs. stalked attachment, and stem/rachis color. (Remember: 9 sessile leaflets on a purplish-brown grooved rachis = European Ash / Fraxinus excelsior, NOT Sambucus nigra!).
+2. Next, fill out "plant.missingDiagnosticTraits" and "plant.possibleSpecies". If ANY diagnostic trait (such as terminal buds, bark, or flowers) is missing to be 100% certain, or if the image is a distant path shot, set "needsCloserLook": true and write a helpful "closerLookGuidance" asking the player for a closer photo of that specific trait.
+
+Respond ONLY with a valid JSON object matching this exact schema:
+{
+  "sceneDescription": "1-sentence accurate description of what is visible in the photo",
+  "plant": {
+    "visualTraits": "FIRST: Count leaflets/lobes, check sessile vs stalked attachment, opposite vs alternate arrangement, and stem/rachis color.",
+    "missingDiagnosticTraits": "What closer feature (e.g. terminal buds, bark texture, flower/fruit, or closer leaf shot) would confirm the ID 100%, or null if unmistakable.",
+    "possibleSpecies": [
+      "Primary candidate Common Name (Scientific Name)",
+      "Second candidate if any ambiguity exists"
+    ],
+    "confidence": "high | medium | low",
+    "commonName": "Exact species name (e.g. European Ash) if clear; or 'Tentative: European Ash (Closer Look at Buds Needed)' if medium confidence; or 'Unidentified Woodland Flora (Closer Look Needed)' if distant path",
+    "scientificName": "Latin binomial name (e.g. Fraxinus excelsior) or 'Species indistinct at this distance'",
+    "oghamName": "Celtic Ogham name & rune symbol, e.g. Nion (᚛ᚅ᚜) for Ash, Duir (᚛ᚇ᚜) for Oak, Fearn (᚛ᚃ᚜) for Fern/Alder, Huath (᚛ᚆ᚜) for Hawthorn"
+  },
+  "needsCloserLook": true,
+  "closerLookGuidance": "If needsCloserLook is true (either distant path OR a leaf/plant that needs a closer look at buds, bark, or leaf base to be 100% sure), tell the player exactly what closer picture to take next. Otherwise null.",
+  "folklore": {
+    "tradition": "World Folklore & Ethnobotany (e.g. Slavic Midsummer Lore, Norse & Baltic Lore, Japanese Hanakotoba, Mediterranean Myth, Indigenous or Gaelic Lore)",
+    "title": "Short folklore title",
+    "loreText": "2-3 sentences of authentic global mythology and folklore about the identified plant from the cultural tradition that resonates most richly with the species."
+  },
+  "story": {
+    "title": "Atmospheric chapter title",
+    "narrative": "3-4 sentences of immersive second-person RPG narrative weaving the real plant/path in the photo into an encounter with the woodland spirit.",
+    "spiritPrompt": "A whispered question or invitation from the forest spirit."
+  },
+  "forageQuest": {
+    "ritualPrompt": "Instruction to physically forage a fallen item nearby as part of the ritual.",
+    "primaryItem": {
+      "id": "kebab-case-item-id",
+      "name": "Fallen Leaf / Ash Key / Twig / Waystone Name",
+      "description": "Mythic & physical description of the item",
+      "symbol": "leaf",
+      "originPlant": "Origin plant name"
+    },
+    "substituteItem": {
+      "id": "kebab-case-substitute-id",
+      "name": "Accessible Substitute (e.g. Weather-Worn Pebble, Fallen Twig, Blade of Grass)",
+      "description": "Why the forest spirit accepts this substitute token",
+      "symbol": "sparkles",
+      "originPlant": "Woodland Floor"
+    }
+  },
+  "choices": [
+    {
+      "id": "choice-ritual",
+      "label": "Action offering the foraged item or an existing inventory item",
+      "outcomeText": "2 sentences describing the magical outcome of completing the ritual.",
+      "requiredItemId": "MUST match either forageQuest.primaryItem.id or an existing inventory item id",
+      "requiredItemName": "MUST match the corresponding item name",
+      "compassDirection": "e.g. North-West along the shaded trail",
+      "pathPrompt": "Specific instruction for where to walk next and what to photograph on the next turn."
+    },
+    {
+      "id": "choice-wander",
+      "label": "Alternative cautious action that requires no item",
+      "outcomeText": "2 sentences describing how the path shifts as you proceed.",
+      "requiredItemId": null,
+      "requiredItemName": null,
+      "compassDirection": "e.g. Along the sunlit verge of the path",
+      "pathPrompt": "Specific instruction for where to walk next and what plant or tree to photograph."
+    }
+  ]
+}`;
+}
+
+/**
+ * Extracts and repairs JSON from open-weight vision model outputs, which may
+ * occasionally include markdown code fences or leading prose.
+ */
+export function parseEncounterJson(
+  rawText: string,
+  inventory: InventoryItem[]
+): EncounterResponse {
+  let cleaned = rawText.trim();
+
+  // Strip ```json ... ``` fences if present
+  const fenceMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenceMatch && fenceMatch[1]) {
+    cleaned = fenceMatch[1].trim();
+  } else {
+    // Find first '{' and last '}'
+    const firstBrace = cleaned.indexOf("{");
+    const lastBrace = cleaned.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      cleaned = cleaned.slice(firstBrace, lastBrace + 1);
+    }
+  }
+
+  const parsed = JSON.parse(cleaned) as Partial<EncounterResponse>;
+
+  const primaryItem: InventoryItem = {
+    id: parsed.forageQuest?.primaryItem?.id || "fallen-trail-leaf",
+    name: parsed.forageQuest?.primaryItem?.name || "Fallen Woodland Leaf",
+    description:
+      parsed.forageQuest?.primaryItem?.description ||
+      "A veined leaf gathered from the edge of the path.",
+    symbol: parsed.forageQuest?.primaryItem?.symbol || "leaf",
+    originPlant:
+      parsed.forageQuest?.primaryItem?.originPlant ||
+      parsed.plant?.commonName ||
+      "Woodland Trail",
+  };
+
+  const substituteItem: InventoryItem = {
+    id: parsed.forageQuest?.substituteItem?.id || "mossy-waystone",
+    name: parsed.forageQuest?.substituteItem?.name || "Weather-Worn Pebble",
+    description:
+      parsed.forageQuest?.substituteItem?.description ||
+      "A humble stone from the path, accepted by the earth spirit when foliage is scarce.",
+    symbol: parsed.forageQuest?.substituteItem?.symbol || "sparkles",
+    originPlant:
+      parsed.forageQuest?.substituteItem?.originPlant || "The Ancient Path",
+  };
+
+  const validItemIds = new Set<string>([
+    primaryItem.id,
+    substituteItem.id,
+    ...inventory.map((i) => i.id),
+  ]);
+
+  // Support both top-level choices and nested story.choices
+  const storyAny = parsed.story as Record<string, unknown> | undefined;
+  const candidateChoices = Array.isArray(parsed.choices)
+    ? parsed.choices
+    : Array.isArray(storyAny?.choices)
+    ? (storyAny?.choices as EncounterResponse["choices"])
+    : [];
+
+  const rawChoices = candidateChoices.length > 0 ? candidateChoices : [];
+
+  const choices =
+    rawChoices.length >= 2
+      ? rawChoices.map((c, idx) => {
+          if (idx === 0) {
+            const reqId =
+              c.requiredItemId && validItemIds.has(c.requiredItemId)
+                ? c.requiredItemId
+                : primaryItem.id;
+            const reqName =
+              c.requiredItemId && validItemIds.has(c.requiredItemId)
+                ? c.requiredItemName || primaryItem.name
+                : primaryItem.name;
+            return {
+              id: c.id || `choice-${idx}`,
+              label: c.label || `Offer the ${reqName} to the spirit of the path`,
+              outcomeText:
+                c.outcomeText ||
+                "The leaves rustle in approval as the unseen guardian parts the brambles ahead.",
+              requiredItemId: reqId,
+              requiredItemName: reqName,
+              compassDirection:
+                c.compassDirection || "Forward toward the bordering trees",
+              pathPrompt:
+                c.pathPrompt ||
+                "Step up to one of the trees along the path and snap a close-up photo of its leaf or bark.",
+            };
+          }
+          return {
+            id: c.id || `choice-${idx}`,
+            label: c.label || "Step quietly along the earthen verge and look closer",
+            outcomeText:
+              c.outcomeText ||
+              "You tread softly along the trail edge, drawing nearer to the living foliage.",
+            requiredItemId: null,
+            requiredItemName: null,
+            compassDirection: c.compassDirection || "Follow the winding trail ahead",
+            pathPrompt:
+              c.pathPrompt ||
+              "Walk up to a single plant or tree trunk beside the path and take a close-up picture.",
+          };
+        })
+      : [
+          {
+            id: "choice-ritual",
+            label: `Raise the ${primaryItem.name} toward the canopy`,
+            outcomeText:
+              "A warm breeze stirs the branches, inviting you closer to read the bark and leaves.",
+            requiredItemId: primaryItem.id,
+            requiredItemName: primaryItem.name,
+            compassDirection: "Toward the nearest tree trunk on the trail edge",
+            pathPrompt:
+              "Walk up to the nearest tree or shrub and snap a close-up photo of its leaves or bark.",
+          },
+          {
+            id: "choice-wander",
+            label: "Approach the trailside foliage for a closer look",
+            outcomeText:
+              "The mycelial network hums beneath your boots as you step closer to the greenery.",
+            requiredItemId: null,
+            requiredItemName: null,
+            compassDirection: "Along the shaded footpath",
+            pathPrompt:
+              "Move within arm's reach of a plant or tree and photograph a single leaf or stem.",
+          },
+        ];
+
+  const plantAny = parsed.plant as Record<string, unknown> | undefined;
+  const possibleSpecies = Array.isArray(plantAny?.possibleSpecies)
+    ? (plantAny.possibleSpecies as string[]).filter((s) => typeof s === "string")
+    : [];
+  const missingDiagnosticTraits =
+    typeof plantAny?.missingDiagnosticTraits === "string"
+      ? plantAny.missingDiagnosticTraits
+      : null;
+
+  const needsCloserLook =
+    typeof parsed.needsCloserLook === "boolean"
+      ? parsed.needsCloserLook
+      : parsed.plant?.confidence === "low" ||
+        parsed.plant?.confidence === "medium" ||
+        Boolean(missingDiagnosticTraits);
+
+  const folkloreIsString = typeof parsed.folklore === "string";
+  const forageAny = parsed.forageQuest as Record<string, unknown> | undefined;
+
+  return {
+    needsCloserLook,
+    closerLookGuidance:
+      parsed.closerLookGuidance ||
+      missingDiagnosticTraits ||
+      (needsCloserLook
+        ? "To confirm the exact species with certainty, step closer and photograph a diagnostic detail such as the stem buds, leaf base attachment, or bark texture."
+        : null),
+    sceneDescription:
+      parsed.sceneDescription ||
+      "A winding woodland path bordered by tall trees and undergrowth.",
+    plant: {
+      commonName:
+        parsed.plant?.commonName ||
+        (needsCloserLook
+          ? "Unidentified Woodland Flora (Closer Look Needed)"
+          : "Woodland Flora"),
+      scientificName:
+        parsed.plant?.scientificName ||
+        (needsCloserLook
+          ? "Species indistinct at this distance"
+          : "Flora silvestris"),
+      confidence: parsed.plant?.confidence || (needsCloserLook ? "low" : "medium"),
+      visualTraits:
+        parsed.plant?.visualTraits ||
+        "Tall canopy trees and trailside undergrowth visible at a distance; close-up leaf venation, buds, or bark texture needed for exact species ID.",
+      oghamName: parsed.plant?.oghamName || "Fidrad (᚛ᚃ᚜) — The Living Wood",
+      possibleSpecies,
+      missingDiagnosticTraits,
+    },
+    folklore: {
+      tradition:
+        (!folkloreIsString && parsed.folklore?.tradition) ||
+        "World Botanical & Woodland Folklore",
+      title:
+        (!folkloreIsString && parsed.folklore?.title) ||
+        "The Threshold of the Living Wood",
+      loreText: folkloreIsString
+        ? (parsed.folklore as unknown as string)
+        : parsed.folklore?.loreText ||
+          "Across world folklore—from Slavic Kupala Night fern-fire to Norse world-trees and ancient herbalist codices—every wild plant holds a distinct counsel revealed when a traveler approaches close enough to read its leaf and bark.",
+    },
+    story: {
+      title: parsed.story?.title || "The Winding Forest Path",
+      narrative:
+        parsed.story?.narrative ||
+        "The earthen path curves ahead into a tunnel of green shadow and filtered sunlight. Dozens of trunks and leafy boughs stand watch on either side, yet from the middle of the trail their exact names remain veiled in the shifting light.",
+      spiritPrompt:
+        parsed.story?.spiritPrompt ||
+        "\"Step closer to a single bough or leaf, traveler, that I may read its veins—or gather a token from the path to walk onward.\"",
+    },
+    forageQuest: {
+      ritualPrompt:
+        parsed.forageQuest?.ritualPrompt ||
+        (typeof forageAny?.prompt === "string" ? forageAny.prompt : "") ||
+        `Look at the ground near your feet and pick up a ${primaryItem.name} to attune with the path.`,
+      primaryItem,
+      substituteItem,
+    },
+    choices,
+  };
+}

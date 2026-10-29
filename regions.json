@@ -1,0 +1,91 @@
+{
+  "regions": [
+    {
+      "id": "paper-texture",
+      "kind": "texture",
+      "pixelBox": { "x": 16, "y": 16, "w": 64, "h": 48 },
+      "note": "Clean uncoated cotton rag paper stock ground texture"
+    },
+    {
+      "id": "header-bar",
+      "kind": "chrome",
+      "pixelBox": { "x": 36, "y": 14, "w": 648, "h": 58 },
+      "container": true,
+      "note": "Top archival header bar with bottom rule at y=70"
+    },
+    {
+      "id": "sheet-turn-title",
+      "kind": "text",
+      "pixelBox": { "x": 200, "y": 24, "w": 270, "h": 36 },
+      "parentId": "header-bar",
+      "note": "SHEET 01 • TURN I archival header text"
+    },
+    {
+      "id": "satchel-button",
+      "kind": "control",
+      "pixelBox": { "x": 528, "y": 24, "w": 169, "h": 40 },
+      "parentId": "header-bar",
+      "note": "SATCHEL (2) pill button in top right"
+    },
+    {
+      "id": "specimen-plate",
+      "kind": "plate",
+      "pixelBox": { "x": 18, "y": 78, "w": 684, "h": 584 },
+      "bleed": true,
+      "note": "Taped botanical photograph of Woodland Bracken fern with four corner mounting tape strips and overlapping circular red vermilion wax seal SLAVIC MIDSUMMER LORE"
+    },
+    {
+      "id": "species-header",
+      "kind": "text",
+      "pixelBox": { "x": 36, "y": 670, "w": 648, "h": 78 },
+      "note": "Lead species heading Woodland Bracken and italic Latin binomial Pteridium aquilinum between y=670 and y=748"
+    },
+    {
+      "id": "lore-text-block",
+      "kind": "text",
+      "pixelBox": { "x": 36, "y": 754, "w": 648, "h": 142 },
+      "note": "Two paragraphs of Slavic midsummer folklore text in serif"
+    },
+    {
+      "id": "forage-box",
+      "kind": "chrome",
+      "pixelBox": { "x": 36, "y": 902, "w": 648, "h": 124 },
+      "container": true,
+      "note": "Bordered Physical Forage ritual compartment box from y=902 to y=1025"
+    },
+    {
+      "id": "forage-label-text",
+      "kind": "text",
+      "pixelBox": { "x": 132, "y": 912, "w": 362, "h": 102 },
+      "parentId": "forage-box",
+      "note": "Physical Forage: Coiled Frond Tip heading and harvest instruction text"
+    },
+    {
+      "id": "forage-cta-button",
+      "kind": "control",
+      "pixelBox": { "x": 502, "y": 923, "w": 176, "h": 86 },
+      "parentId": "forage-box",
+      "note": "Vermilion red rectangular button labeled I Picked Up Frond"
+    },
+    {
+      "id": "path-row-1",
+      "kind": "control",
+      "pixelBox": { "x": 36, "y": 1026, "w": 648, "h": 92 },
+      "reviewGroup": "path-choice-row",
+      "note": "First path action row PATHS AWAIT Choose your path into the turn with compass icon and right arrow"
+    },
+    {
+      "id": "path-row-2",
+      "kind": "control",
+      "pixelBox": { "x": 36, "y": 1118, "w": 648, "h": 89 },
+      "reviewGroup": "path-choice-row",
+      "note": "Second path action row II INTO THE FERNWOOD Seek the fern-flower where the old paths cross with leaf icon and right arrow"
+    },
+    {
+      "id": "swipe-footer",
+      "kind": "text",
+      "pixelBox": { "x": 36, "y": 1208, "w": 648, "h": 58 },
+      "note": "Bottom decorative rule and Swipe down for Chapter II prompt"
+    }
+  ]
+}
