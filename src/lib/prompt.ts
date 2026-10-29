@@ -32,12 +32,12 @@ CRITICAL BOTANICAL ACCURACY & HUMILITY RULES:
      * NEVER call a pinnate leaf with 9+ sessile leaflets and purplish-brown rachis nodes "Sambucus nigra"! That is Ash (Fraxinus excelsior).
    - ROWAN / MOUNTAIN ASH (Sorbus aucuparia, Ogham: Luis ᚛ᚂ᚜): 9 to 15 smaller oblong, sharply toothed sessile leaflets, alternate leaf arrangement on the branch (whereas Ash has opposite leaves).
 
-3. WHEN IN DOUBT, ASK FOR A CLOSER OR DIAGNOSTIC PHOTO ("needsCloserLook": true):
-   - Case A (Wide Path / Distant Foliage): If the photo is a wide shot of a trail or distant trees, DO NOT guess a species. Set "needsCloserLook": true, "confidence": "low", and "commonName": "Unidentified Woodland Flora (Closer Look Needed)".
-   - Case B (Ambiguous Close-Up / Missing Diagnostic Organ): Even if the photo is a close-up of a leaf or stem, if the plant belongs to a group with close lookalikes (e.g., compound pinnate leaves, grasses, ferns, or young saplings without flowers, fruit, bark, or winter buds visible) and you cannot be 100% certain of the exact species from this single angle:
-     * Set "needsCloserLook": true and "confidence": "medium" or "low".
-     * Give your best morphological match in "commonName" (e.g., "European Ash (or Pinnate Lookalike — Confirm Buds/Bark)"), list the candidates in "possibleSpecies", and explain in "closerLookGuidance" what specific diagnostic feature the player should photograph next to confirm it (e.g., "I see an opposite pinnate leaf with 9 sessile leaflets pointing strongly to Ash (Fraxinus excelsior), but to be 100% certain, snap a closer picture of the stem tip/buds (Ash has jet-black buds) or the main trunk bark!").
-   - If the player provides a "Player Note" specifying the plant they are looking at, respect and incorporate their field observation.
+3. SEPARATE IDENTIFICATION UNCERTAINTY FROM IMAGE USABILITY:
+   - Set "needsCloserLook": true ONLY when blur, darkness, obstruction, or an unrecognizable subject prevents a useful description of the scene. Give one specific optional retake instruction, and still offer a path that continues the story.
+   - A clear landscape, distant woodland, leaf, or fern is a valid encounter. Set "needsCloserLook": false even if exact species identification is uncertain. Use a supported broad name (e.g. "Fern", "Woodland trees") or a tentative species name, retain medium/low confidence, and list missing traits without requesting another photo.
+   - Never require 100% species certainty to continue the adventure. Missing buds, flowers, or bark alone are NOT reasons to request a retake.
+   - Do not invent a Latin name or attach species-specific folklore to an unidentified plant. Use applicable landscape folklore with accurate attribution instead.
+   - Treat player notes as observations, not proof of a species. Keep conflicting visual evidence and uncertainty explicit.
 
 Your task is to analyze the player's photo and return a SINGLE, strictly valid JSON object (no markdown fences, no commentary outside JSON).`;
 }
@@ -59,7 +59,7 @@ ${ctx.bioClipCandidates
       `  ${i + 1}. ${c.scientificName}${c.commonName ? ` (${c.commonName})` : ""} — cosine similarity: ${c.similarity.toFixed(4)}`
   )
   .join("\n")}
-(NOTE: First check if the photo is a close-up of a plant or a wide landscape/trail shot. If it is a wide path/trail shot, ignore the species list and set needsCloserLook: true! If it IS a close-up plant shot, use these specialized BioCLIP botanical candidates alongside your own morphological inspection of leaflet count, opposite vs alternate arrangement, and sessile vs stalked leaflets to select the best match or ask for a closer look at buds/bark if two candidates are close.)\n`
+(NOTE: These candidates are supporting evidence, not proof. For a clear landscape, ignore species rankings and build an encounter from the visible scene without requesting a closer image. For a recognizable plant with uncertain species, use a cautious broad or tentative name and continue the story. Only an unusable image warrants needsCloserLook: true.)\n`
       : "";
 
   return `PLAYER CONTEXT:
@@ -74,25 +74,25 @@ ${inventorySummary}
 ${bioClipBlock}
 STEP-BY-STEP INSTRUCTIONS:
 1. First, fill out "plant.visualTraits" by counting leaflets/lobes, checking opposite vs. alternate arrangement, sessile vs. stalked attachment, and stem/rachis color. (Remember: 9 sessile leaflets on a purplish-brown grooved rachis = European Ash / Fraxinus excelsior, NOT Sambucus nigra!).
-2. Next, fill out "plant.missingDiagnosticTraits" and "plant.possibleSpecies". If ANY diagnostic trait (such as terminal buds, bark, or flowers) is missing to be 100% certain, or if the image is a distant path shot, set "needsCloserLook": true and write a helpful "closerLookGuidance" asking the player for a closer photo of that specific trait.
+2. Fill out "plant.missingDiagnosticTraits" and "plant.possibleSpecies" honestly. Set "needsCloserLook" according to image usability, NOT species certainty. A readable scene with uncertain species continues the story with a cautious label and "closerLookGuidance": null.
 
 Respond ONLY with a valid JSON object matching this exact schema:
 {
   "sceneDescription": "1-sentence accurate description of what is visible in the photo",
   "plant": {
     "visualTraits": "FIRST: Count leaflets/lobes, check sessile vs stalked attachment, opposite vs alternate arrangement, and stem/rachis color.",
-    "missingDiagnosticTraits": "What closer feature (e.g. terminal buds, bark texture, flower/fruit, or closer leaf shot) would confirm the ID 100%, or null if unmistakable.",
+    "missingDiagnosticTraits": "What closer feature (e.g. terminal buds, bark texture, flower/fruit, or closer leaf shot) would help refine the identification, or null if none needed. This does not require a retake.",
     "possibleSpecies": [
       "Primary candidate Common Name (Scientific Name)",
       "Second candidate if any ambiguity exists"
     ],
     "confidence": "high | medium | low",
-    "commonName": "Exact species name (e.g. European Ash) if clear; or 'Tentative: European Ash (Closer Look at Buds Needed)' if medium confidence; or 'Unidentified Woodland Flora (Closer Look Needed)' if distant path",
+    "commonName": "Exact species name (e.g. European Ash) if clear; or 'Possible European Ash' if medium confidence; or 'Woodland Trees' if distant path",
     "scientificName": "Latin binomial name (e.g. Fraxinus excelsior) or 'Species indistinct at this distance'",
     "oghamName": "Celtic Ogham name & rune symbol, e.g. Nion (᚛ᚅ᚜) for Ash, Duir (᚛ᚇ᚜) for Oak, Fearn (᚛ᚃ᚜) for Fern/Alder, Huath (᚛ᚆ᚜) for Hawthorn"
   },
-  "needsCloserLook": true,
-  "closerLookGuidance": "If needsCloserLook is true (either distant path OR a leaf/plant that needs a closer look at buds, bark, or leaf base to be 100% sure), tell the player exactly what closer picture to take next. Otherwise null.",
+  "needsCloserLook": false,
+  "closerLookGuidance": "Only for an unusable image: one optional, specific retake instruction. Otherwise null.",
   "folklore": {
     "tradition": "World Folklore & Ethnobotany (e.g. Slavic Midsummer Lore, Norse & Baltic Lore, Japanese Hanakotoba, Mediterranean Myth, Indigenous or Gaelic Lore)",
     "title": "Short folklore title",
@@ -286,9 +286,7 @@ export function parseEncounterJson(
   const needsCloserLook =
     typeof parsed.needsCloserLook === "boolean"
       ? parsed.needsCloserLook
-      : parsed.plant?.confidence === "low" ||
-        parsed.plant?.confidence === "medium" ||
-        Boolean(missingDiagnosticTraits);
+      : false;
 
   const folkloreIsString = typeof parsed.folklore === "string";
   const forageAny = parsed.forageQuest as Record<string, unknown> | undefined;
@@ -296,11 +294,9 @@ export function parseEncounterJson(
   return {
     needsCloserLook,
     closerLookGuidance:
-      parsed.closerLookGuidance ||
-      missingDiagnosticTraits ||
-      (needsCloserLook
-        ? "To confirm the exact species with certainty, step closer and photograph a diagnostic detail such as the stem buds, leaf base attachment, or bark texture."
-        : null),
+      needsCloserLook
+        ? parsed.closerLookGuidance || "The scene is difficult to make out. You can try a clearer photograph in better light, or follow the path onward."
+        : null,
     sceneDescription:
       parsed.sceneDescription ||
       "A winding woodland path bordered by tall trees and undergrowth.",
@@ -314,7 +310,7 @@ export function parseEncounterJson(
         parsed.plant?.scientificName ||
         (needsCloserLook
           ? "Species indistinct at this distance"
-          : "Flora silvestris"),
+          : "Species not identified"),
       confidence: parsed.plant?.confidence || (needsCloserLook ? "low" : "medium"),
       visualTraits:
         parsed.plant?.visualTraits ||
