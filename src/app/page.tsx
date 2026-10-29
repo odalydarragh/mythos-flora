@@ -8,7 +8,9 @@ import {
   InventoryItem,
 } from "@/types/game";
 import { compressImageToDataUrl } from "@/lib/image-utils";
+import StoryPassage from "@/components/StoryPassage";
 import InventoryDrawer from "@/components/InventoryDrawer";
+import LoreRitualLoader from "@/components/LoreRitualLoader";
 
 // Required plate references for Impeccable comp-spec contract:
 // assets/plates/paper-texture.png
@@ -46,10 +48,10 @@ const INITIAL_SPECIMEN_ENCOUNTER: EncounterResponse = {
       "In Slavic midsummer lore, bracken uncurls beneath the fern-fire of the longest day, guarding sparks of the sun and leading the wise to hidden bloom. Folklore from the Carpathians to the Baltic tells of its fronds as thresholds between worlds.",
   },
   story: {
-    title: "II • INTO THE FERNWOOD",
+    title: "The Light Beneath the Ferns",
     narrative:
-      "In Slavic midsummer lore, bracken uncurls beneath the fern-fire of the longest day, guarding sparks of the sun and leading the wise to hidden bloom.\nFolklore from the Carpathians to the Baltic tells of its fronds as thresholds between worlds.",
-    spiritPrompt: "Seek the fern-flower where the old paths cross.",
+      "A single amber light hangs beneath the bracken. It does not flicker when the wind moves the fronds. As you draw closer, it slips deeper into the wood, then stops, as though waiting for you.\nA voice rises from the dry leaves at your feet. Someone has carried a spark beyond the old boundary, and the wood has lost the way to call it home.",
+    spiritPrompt: "Will you follow the light along the open verge, or bring a token of the fernwood and ask the hidden path to let you through?",
   },
   forageQuest: {
     ritualPrompt:
@@ -306,7 +308,7 @@ export default function MythosFloraPage() {
       `[data-turn-slide="${turnNumber}"]`
     ) as HTMLElement | null;
     if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      el.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
     }
   };
 
@@ -335,10 +337,13 @@ export default function MythosFloraPage() {
           inventory,
           previousChoiceLabel: prevChapter?.selectedChoice?.label,
           previousDirection: prevChapter?.selectedChoice?.compassDirection,
+          previousStory: prevChapter?.encounter?.story.narrative,
+          previousOutcome: prevChapter?.selectedChoice?.outcomeText,
           customObservation: observationNote,
         }),
       });
 
+      if (!res.ok) throw new Error(`Encounter request failed: ${res.status}`);
       const data = (await res.json()) as EncounterResponse;
 
       setChapters((prev) => {
@@ -392,6 +397,7 @@ export default function MythosFloraPage() {
       }
     } catch (err) {
       console.error("Failed to summon botanical encounter:", err);
+      setCaptureError("The woodland spirit could not receive your photograph. Try offering it again.");
       setChapters((prev) =>
         prev.map((ch) =>
           ch.turnNumber === turnNumber ? { ...ch, status: "capture" } : ch
@@ -416,7 +422,7 @@ export default function MythosFloraPage() {
       setCustomNote("");
     } catch (err) {
       console.error("Image compression error:", err);
-      setCaptureError("Could not process that photo. Please try another snap.");
+      setCaptureError("This image is veiled from the spirit. Choose another photograph or take a new one.");
     } finally {
       setIsCompressing(false);
       e.target.value = "";
@@ -522,7 +528,7 @@ export default function MythosFloraPage() {
       />
 
       {/* =====================================================================
-          SHEET 01 • TURN I (THE APPROVED HERO VOUCHER SHEET)
+          CHAPTER I (THE APPROVED HERO VOUCHER SHEET)
          ===================================================================== */}
       <section
         data-turn-slide="1"
@@ -563,7 +569,7 @@ export default function MythosFloraPage() {
                 whiteSpace: "nowrap",
               }}
             >
-              SHEET 01 • TURN I
+              CHAPTER I
             </p>
           </div>
 
@@ -689,31 +695,7 @@ export default function MythosFloraPage() {
             className="r-lore-text-block flex flex-col justify-center gap-[1.1cqw] text-[#17150f]"
             data-region="lore-text-block"
           >
-            <p
-              style={{
-                fontFamily: "'Petrona', 'Cormorant Garamond', Georgia, serif",
-                fontSize: "max(13px, 2.48cqw)",
-                lineHeight: 1.32,
-                margin: 0,
-                fontWeight: 400,
-              }}
-            >
-              In Slavic midsummer lore, bracken uncurls beneath the fern-fire of
-              the longest day, guarding sparks of the sun and leading the wise
-              to hidden bloom.
-            </p>
-            <p
-              style={{
-                fontFamily: "'Petrona', 'Cormorant Garamond', Georgia, serif",
-                fontSize: "max(13px, 2.48cqw)",
-                lineHeight: 1.32,
-                margin: 0,
-                fontWeight: 400,
-              }}
-            >
-              Folklore from the Carpathians to the Baltic tells of its fronds as
-              thresholds between worlds.
-            </p>
+            <StoryPassage encounter={sheet1Encounter} />
           </div>
 
           {/* 8. Physical Forage Box Chrome (4-sided enclosed box + Shaded Coiled Crosier Engraving + Vertical Divider) */}
@@ -777,7 +759,7 @@ export default function MythosFloraPage() {
                 color: "#1e2111",
               }}
             >
-              Physical Forage: {sheet1ActiveItem.name}
+              Gather a Token: {sheet1ActiveItem.name}
             </p>
             <p
               style={{
@@ -814,7 +796,7 @@ export default function MythosFloraPage() {
               >
                 {isSheet1ItemCollected ? (
                   <>
-                    Collected in bag
+                    Kept in your satchel
                   </>
                 ) : (
                   <>
@@ -1087,7 +1069,7 @@ export default function MythosFloraPage() {
                   Mythos Flora
                 </span>
                 <span className="text-sm uppercase tracking-[0.08em] text-[#1d2111] font-normal">
-                  SHEET {sheetNum} • TURN {romanTurn}
+                  CHAPTER {romanTurn}
                 </span>
                 <button
                   type="button"
@@ -1100,8 +1082,15 @@ export default function MythosFloraPage() {
               </header>
 
               {/* STATE A: UNMOUNTED VOUCHER / CAMERA CAPTURE */}
-              {chapter.status === "capture" && (
+              {chapter.status === "capture" && !(isCompressing && activeTargetTurn === chapter.turnNumber) && (
                 <div className="my-auto py-3 space-y-4">
+                  {prevChapter?.selectedChoice && (
+                    <article className="story-passage story-passage--consequence" key={prevChapter.selectedChoice.id}>
+                      <h2>{prevChapter.selectedChoice.label}</h2>
+                      <p>{prevChapter.selectedChoice.outcomeText}</p>
+                      <blockquote><p>{activePrompt}</p><cite>The Spirit of the Wood</cite></blockquote>
+                    </article>
+                  )}
                   {/* Taped Empty Herbarium Mounting Frame */}
                   <div className="relative border border-[#3b3c2e] bg-[#ebe1cd] p-5 shadow-sm">
                     <span className="pointer-events-none absolute -top-2 -left-2 h-4 w-12 -rotate-45 bg-[#dfd3ba] border border-[#b5a88e]" />
@@ -1116,7 +1105,7 @@ export default function MythosFloraPage() {
                           fontFamily: "'Cormorant Garamond', Georgia, serif",
                         }}
                       >
-                        Mount Next Specimen Plate
+                        What stirs along your path?
                       </h2>
                       <p className="text-xs uppercase tracking-[0.12em] text-[#474737]">
                         Heading: {activeHeading}
@@ -1147,11 +1136,10 @@ export default function MythosFloraPage() {
                   <div className="border border-[#2b2e20] bg-[#efe7d5]/55 p-3.5 grid grid-cols-3 gap-3 items-center">
                     <div className="col-span-2 space-y-0.5 border-r border-[#353525]/60 pr-2">
                       <p className="text-sm font-medium text-[#1e2111]">
-                        Field Camera &amp; Herbarium Press
+                        Commune with the Wood
                       </p>
                       <p className="text-xs text-[#474737]">
-                        BioCLIP 2.5 + Llama Vision identifies flora &amp;
-                        retrieves world folklore.
+                        Offer a photograph of a plant to learn its name and the tales it carries.
                       </p>
                     </div>
                     <button
@@ -1164,12 +1152,12 @@ export default function MythosFloraPage() {
                       className="archival-press rounded-[4px] bg-[#904035] p-[3px] text-[#f6e6d9] hover:bg-[#7e3125] disabled:opacity-50"
                     >
                       <span className="flex h-full w-full items-center justify-center rounded-[3px] border border-[#cc8f80] py-2.5 px-2 text-center text-sm font-semibold leading-tight">
-                        {isCompressing ? "Pressing..." : "Snap Flora"}
+                        {isCompressing ? "Calling the spirit…" : "Photograph a Plant"}
                       </span>
                     </button>
                   </div>
 
-                  {/* Secondary Upload & Field Lab Rows */}
+                  {/* Secondary Upload & Lorekeeper Rows */}
                   <div className="divide-y divide-[#2b2e20] border-b border-[#2b2e20]">
                     <button
                       type="button"
@@ -1182,10 +1170,10 @@ export default function MythosFloraPage() {
                     >
                       <div>
                         <p className="text-sm font-medium uppercase tracking-wider">
-                          UPLOAD FIELD PHOTOGRAPH
+                          OFFER A PHOTOGRAPH
                         </p>
                         <p className="text-xs text-[#474737]">
-                          Select an existing plant photo from your device roll.
+                          Choose a plant photograph from your collection.
                         </p>
                       </div>
                       <span className="text-sm text-[#27291b]">→</span>
@@ -1198,11 +1186,10 @@ export default function MythosFloraPage() {
                     >
                       <div>
                         <p className="text-sm font-medium uppercase tracking-wider">
-                          OPEN HERBARIUM FIELD LAB
+                          OPEN THE LOREKEEPER’S LEDGER
                         </p>
                         <p className="text-xs text-[#474737]">
-                          Inspect reference specimens or review your pressed
-                          vouchers.
+                          Revisit the plants and old tales gathered along your path.
                         </p>
                       </div>
                       <span className="text-sm text-[#27291b]">→</span>
@@ -1211,26 +1198,10 @@ export default function MythosFloraPage() {
                 </div>
               )}
 
-              {/* STATE B: LORE RITUAL */}
-              {chapter.status === "ritual" && (
-                <div className="my-auto py-6 space-y-5 text-center">
-                  <div className="relative mx-auto max-w-xs border border-[#3b3c2e] bg-[#ebe1cd] p-3">
-                    {chapter.imageUrl && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={chapter.imageUrl}
-                        alt="Pressing specimen"
-                        className="h-56 w-full object-cover sepia-[0.18]"
-                      />
-                    )}
-                    <div className="mt-2 border-t border-[#3b3c2e] pt-2 text-xs uppercase tracking-[0.14em] text-[#7e3125] font-medium">
-                      Pressing Specimen &amp; Consulting World Lore...
-                    </div>
-                  </div>
-                  <p className="text-sm text-[#2b3020] max-w-xs mx-auto leading-relaxed">
-                    Matching morphological traits against 4,271 species in
-                    BioCLIP 2.5 and retrieving global botanical folklore...
-                  </p>
+              {/* The same animation spans local preparation and the request. */}
+              {(chapter.status === "ritual" || (isCompressing && activeTargetTurn === chapter.turnNumber && chapter.status === "capture")) && (
+                <div className="my-auto py-8">
+                  <LoreRitualLoader previewImageUrl={chapter.status === "ritual" ? chapter.imageUrl : null} />
                 </div>
               )}
 
@@ -1273,7 +1244,7 @@ export default function MythosFloraPage() {
                   {enc.needsCloserLook && (
                     <div className="border border-[#904035] bg-[#f6e6d9]/70 p-2.5 text-xs text-[#18221b] flex items-center justify-between gap-2">
                       <span>
-                        <strong>Diagnostic Note:</strong>{" "}
+                        <strong>The spirit asks:</strong>{" "}
                         {enc.closerLookGuidance}
                       </span>
                       <button
@@ -1284,20 +1255,18 @@ export default function MythosFloraPage() {
                         }}
                         className="shrink-0 rounded-[3px] bg-[#904035] px-2.5 py-1 text-[11px] text-[#f6e6d9]"
                       >
-                        Retake Closer
+                        Photograph Closer
                       </button>
                     </div>
                   )}
 
-                  <p className="text-sm text-[#17150f] leading-relaxed">
-                    {enc.folklore.loreText}
-                  </p>
+                  <StoryPassage encounter={enc} />
 
                   {/* 4-Sided Enclosed Physical Forage Box */}
                   <div className="border border-[#2b2e20] bg-[#efe7d5]/55 p-3 flex items-center justify-between gap-3">
                     <div className="space-y-0.5 min-w-0 border-r border-[#353525]/60 pr-3 flex-1">
                       <p className="text-sm font-medium text-[#1e2111]">
-                        Physical Forage: {activeItem.name}
+                        Gather a Token: {activeItem.name}
                       </p>
                       <p className="text-xs text-[#474737] line-clamp-2">
                         {activeItem.description}
@@ -1366,7 +1335,7 @@ export default function MythosFloraPage() {
                             <p className="text-xs text-[#474737]">
                               {unlocked
                                 ? choice.pathPrompt
-                                : `Requires in satchel: ${choice.requiredItemName}`}
+                                : `Bring this token: ${choice.requiredItemName}`}
                             </p>
                           </div>
                           <span className="text-sm">→</span>
@@ -1386,7 +1355,7 @@ export default function MythosFloraPage() {
                   onClick={() => scrollToTurn(1)}
                   className="text-xs tracking-wide hover:underline"
                 >
-                  Swipe up for Sheet 01
+                  Return to Chapter I
                 </button>
                 <span className="text-xs text-[#4a4b3c]">◇</span>
                 <span className="h-[1px] flex-1 bg-[#4a4b3c]/75" />
@@ -1396,7 +1365,7 @@ export default function MythosFloraPage() {
         );
       })}
 
-      {/* Slide-out Herbarium Satchel, Voucher Compendium & Field Lab Drawer */}
+      {/* Slide-out Herbarium Satchel, Voucher Compendium & Lorekeeper Drawer */}
       <InventoryDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}

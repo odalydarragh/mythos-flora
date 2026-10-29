@@ -152,7 +152,7 @@ export default function CameraCapture({
       onPhotoCaptured(compressedDataUrl, customNote.trim() || undefined);
     } catch (err) {
       console.error("Image compression error:", err);
-      setErrorMessage("Could not process that photo. Please try another snap.");
+      setErrorMessage("This image is veiled from the spirit. Choose another photograph or take a new one.");
     } finally {
       setIsCompressing(false);
       e.target.value = "";
@@ -208,13 +208,13 @@ export default function CameraCapture({
 
           <div className="space-y-1.5">
             <span className="inline-block rounded-full bg-forest-800/80 border border-forest-600 px-3 py-0.5 text-[11px] font-medium uppercase tracking-widest text-parchment-300">
-              Chapter {turnNumber} • The Snap
+              Chapter {turnNumber} • The Encounter
             </span>
             <h2 className="text-xl font-serif font-bold text-parchment-50">
-              Capture the Path or Flora Ahead
+              Meet the Living Wood
             </h2>
             <p className="text-xs text-parchment-200/80 max-w-xs mx-auto leading-relaxed">
-              Step outside and photograph a real tree, leaf, mossy stone, or the trail before you. The 11B Vision Spirit will identify the species, retrieve its folklore, and weave your quest.
+              Photograph a tree, leaf, or mossy stone along your path. Offer its likeness to the woodland spirit and discover the tales it carries.
             </p>
           </div>
 
@@ -261,7 +261,7 @@ export default function CameraCapture({
               className="flex items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-forest-600 to-forest-500 px-5 py-3.5 text-sm font-semibold text-parchment-50 shadow-lg shadow-forest-950/60 border border-parchment-300/30 active:scale-[0.99] transition hover:from-forest-500 hover:to-forest-600 disabled:opacity-50"
             >
               <Camera className="h-5 w-5 text-parchment-200" />
-              <span>{isCompressing ? "Preparing..." : "Snap Path / Plant"}</span>
+              <span>{isCompressing ? "Calling the spirit…" : "Photograph the Wood"}</span>
             </button>
 
             <button
@@ -271,7 +271,7 @@ export default function CameraCapture({
               className="flex items-center justify-center gap-2 rounded-xl border border-forest-700 bg-forest-900/80 px-4 py-3.5 text-xs font-medium text-parchment-200 hover:bg-forest-800/80 active:scale-[0.99] transition disabled:opacity-50"
             >
               <Upload className="h-4 w-4 text-parchment-400" />
-              <span>Upload Photo</span>
+              <span>Offer a Photograph</span>
             </button>
           </div>
 
@@ -279,7 +279,7 @@ export default function CameraCapture({
           <div className="w-full max-w-sm pt-3 border-t border-forest-800/80">
             <p className="text-[11px] uppercase tracking-wider text-parchment-300/60 mb-2 flex items-center justify-center gap-1">
               <Sparkles className="h-3 w-3 text-parchment-400" />
-              <span>Testing Indoors? Try a Botanical Trail Specimen:</span>
+              <span>By the hearth? Begin with an illustrated plant:</span>
             </p>
             <div className="grid grid-cols-3 gap-2">
               <button

@@ -34,12 +34,12 @@ export default function ForageRitualBox({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-parchment-300">
           <Hand className="h-4 w-4 text-parchment-400" />
-          <span>Physical Foraging Ritual</span>
+          <span>A Woodland Offering</span>
         </div>
         {isAnyCollectedThisTurn && (
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/90 border border-emerald-500/40 px-2.5 py-0.5 text-[11px] font-medium text-emerald-300">
             <CheckCircle2 className="h-3.5 w-3.5" />
-            <span>In Your Bag</span>
+            <span>In Your Satchel</span>
           </span>
         )}
       </div>

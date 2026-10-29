@@ -183,3 +183,41 @@ nextjs-portal {
   .scroll-smooth { scroll-behavior: auto; }
   .archival-press:active { transform: none; }
 }
+
+/* An indeterminate herbarium press: no simulated upload percentage. */
+.specimen-upload { max-width: 360px; margin-inline: auto; text-align: center; }
+.specimen-upload__mount { position: relative; margin: 0 16px 32px; aspect-ratio: 4 / 3; border: 1px solid var(--rule-hairline); background: var(--bg-rag-warm); padding: 10px; display: grid; place-items: center; }
+.specimen-upload__photo { width: 100%; height: 100%; object-fit: cover; min-height: 0; }
+.specimen-upload__leaf { width: 72px; height: 72px; color: var(--ink-secondary); }
+.specimen-upload__seal { position: absolute; bottom: -18px; right: 18px; width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; color: var(--bg-rag); background: var(--accent-vermilion); }
+.specimen-upload h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 28px; line-height: 1.15; margin-bottom: 12px; }
+.specimen-upload p { font-size: 15px; line-height: 1.6; color: var(--ink-secondary); }
+/* Motes rise from the offering like embers; the leaf stirs in a slow breeze. */
+.specimen-upload__embers { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.specimen-upload__embers i { position: absolute; left: 18%; bottom: 12%; width: 4px; height: 4px; border-radius: 50%; background: #b87932; animation: woodland-ember 5s ease-in-out infinite; }
+.specimen-upload__embers i:nth-child(2) { left: 38%; animation-delay: -2s; }
+.specimen-upload__embers i:nth-child(3) { left: 57%; animation-delay: -4s; }
+.specimen-upload__embers i:nth-child(4) { left: 73%; animation-delay: -1s; }
+.specimen-upload__embers i:nth-child(5) { left: 87%; animation-delay: -3s; }
+.specimen-upload__leaf, .specimen-upload__seal svg { transform-origin: 50% 90%; animation: woodland-breath 6s ease-in-out infinite; }
+@keyframes woodland-ember { 0% { transform: translate(0, 0); opacity: 0; } 25% { opacity: .85; } 70% { opacity: .5; } 100% { transform: translate(-18px, -180px); opacity: 0; } }
+@keyframes woodland-breath { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .specimen-upload__embers i, .specimen-upload__leaf, .specimen-upload__seal svg { animation: none; }
+  .specimen-upload__embers { display: none; }
+}
+
+.story-passage { padding: 24px 0; color: var(--ink-archival); }
+.story-passage h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: clamp(30px, 6vw, 40px); line-height: 1.12; font-weight: 500; margin: 0 0 20px; text-wrap: balance; }
+.story-passage p { font-size: 17px; line-height: 1.75; margin: 0 0 16px; }
+.story-passage blockquote { margin: 24px 0; padding: 20px 0; border-block: 1px solid var(--rule-hairline); }
+.story-passage blockquote p { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 25px; line-height: 1.4; }
+.story-passage cite { font-size: 13px; font-style: normal; color: var(--accent-vermilion); }
+.story-passage__lore summary { cursor: pointer; min-height: 44px; padding-block: 12px; font-size: 14px; color: var(--ink-secondary); }
+.story-passage__lore h3 { font-size: 20px; margin: 12px 0; }
+.story-passage__lore .story-passage__tradition { font-size: 13px; color: var(--ink-secondary); }
+.comp-frame .r-lore-text-block .story-passage p { font-size: 17px !important; line-height: 1.75 !important; }
+.comp-frame .r-lore-text-block .story-passage blockquote p { font-size: 25px !important; line-height: 1.4 !important; }
+.story-passage--consequence { animation: chapter-arrive 900ms ease-out both; }
+@keyframes chapter-arrive { from { opacity: .45; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .story-passage--consequence { animation: none; } }

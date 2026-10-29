@@ -51,7 +51,7 @@ export default function InventoryDrawer({
       className="fixed inset-0 z-50 flex items-end sm:items-stretch sm:justify-end bg-[#18221b]/65 transition-opacity"
       role="dialog"
       aria-modal="true"
-      aria-label="Forager's Satchel & Herbarium Dossier"
+      aria-label="Forager's Satchel and Lorebook"
     >
       <div
         className="relative flex max-h-[88dvh] sm:max-h-full sm:h-full w-full sm:max-w-md flex-col border-t sm:border-t-0 sm:border-l border-[#353525] bg-[#f1e8d7] text-[#18221b] shadow-2xl"
@@ -68,10 +68,10 @@ export default function InventoryDrawer({
               className="text-xl font-semibold text-[#16190d] leading-tight"
               style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
             >
-              Herbarium Satchel &amp; Ledger
+              Satchel &amp; Lorebook
             </h2>
             <p className="text-xs text-[#3b3e30]">
-              Pressed specimens, foraged tokens &amp; botanical notes
+              Tokens of your journey and tales of the living wood
             </p>
           </div>
           <button
@@ -105,7 +105,7 @@ export default function InventoryDrawer({
                 : "bg-transparent text-[#27291b] border-transparent hover:border-[#353525]/40"
             }`}
           >
-            Vouchers ({compendium.length})
+            Lorebook ({compendium.length})
           </button>
           <button
             type="button"
@@ -116,7 +116,7 @@ export default function InventoryDrawer({
                 : "bg-transparent text-[#27291b] border-transparent hover:border-[#353525]/40"
             }`}
           >
-            Field Lab
+            Lorekeeper
           </button>
         </div>
 
@@ -133,9 +133,7 @@ export default function InventoryDrawer({
                     Your Satchel is Empty
                   </p>
                   <p className="text-xs text-[#3b3e30] leading-relaxed">
-                    Complete physical foraging rituals on any voucher sheet to
-                    gather fallen fronds, acorns, and waystones that unlock
-                    folkloric paths.
+                    Gather fallen tokens along your journey. An acorn, a dry frond, or a waystone may open a hidden path.
                   </p>
                 </div>
               ) : (
@@ -158,11 +156,11 @@ export default function InventoryDrawer({
                           {item.description}
                         </p>
                         <p className="text-[11px] uppercase tracking-wider text-[#5c5848]">
-                          Origin Specimen: {item.originPlant}
+                          Gathered from: {item.originPlant}
                         </p>
                       </div>
                       <span className="shrink-0 rounded-full border border-[#353525] px-2.5 py-0.5 text-[10px] uppercase tracking-wider text-[#202315]">
-                        In Bag
+                        In Satchel
                       </span>
                     </div>
                   ))}
@@ -179,11 +177,10 @@ export default function InventoryDrawer({
                     className="text-lg font-semibold text-[#16190d]"
                     style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
                   >
-                    No Pressed Vouchers Recorded
+                    Your story is yet unwritten
                   </p>
                   <p className="text-xs text-[#3b3e30] leading-relaxed">
-                    Every plant identified along your walk is cataloged here
-                    with its Latin binomial and world folklore entry.
+                    Meet the plants along your path. Their names and the old tales they carry will find a home here.
                   </p>
                 </div>
               ) : (
@@ -191,7 +188,7 @@ export default function InventoryDrawer({
                   {compendium.map((entry, idx) => (
                     <div key={entry.id} className="py-3.5 space-y-1.5">
                       <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-[#5c5848]">
-                        <span>Voucher #{String(idx + 1).padStart(2, "0")}</span>
+                        <span>Leaf #{String(idx + 1).padStart(2, "0")}</span>
                         <span>{entry.tradition}</span>
                       </div>
                       <div className="flex items-baseline gap-2">
@@ -226,12 +223,10 @@ export default function InventoryDrawer({
                     className="text-base font-semibold text-[#16190d]"
                     style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
                   >
-                    Herbarium Reference Specimens (Indoor Evaluation)
+                    Tales by the Hearth
                   </h3>
                   <p className="text-xs text-[#3b3e30] leading-relaxed">
-                    Testing indoors away from a trail? Load a reference
-                    botanical specimen to run a live BioCLIP 2.5 + Llama Vision
-                    folklore analysis:
+                    Far from the woodland? Choose an illustrated plant to begin a practice encounter.
                   </p>
                   <div className="grid grid-cols-3 gap-2 pt-1">
                     <button
@@ -284,18 +279,17 @@ export default function InventoryDrawer({
                     className="text-base font-semibold text-[#16190d]"
                     style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
                   >
-                    Morphological &amp; BioCLIP 2.5 Telemetry
+                    The Lorekeeper’s Observations
                   </h3>
                   <p className="text-xs text-[#2b3020] leading-relaxed">
-                    <strong>Observed Traits:</strong>{" "}
+                    <strong>Signs in leaf and bark:</strong>{" "}
                     {currentEncounter.plant.visualTraits}
                   </p>
                   {currentEncounter.plant.bioClipCandidates &&
                     currentEncounter.plant.bioClipCandidates.length > 0 && (
                       <div className="space-y-1.5 pt-1">
                         <p className="text-[11px] uppercase tracking-wider text-[#5c5848]">
-                          Top BioCLIP 2.5 Matches (4,271 Species — Tap to
-                          Re-Attune):
+                          Possible kin of this plant — choose a name to seek its tale:
                         </p>
                         <div className="flex flex-wrap gap-1.5">
                           {currentEncounter.plant.bioClipCandidates
@@ -335,7 +329,7 @@ export default function InventoryDrawer({
                         type="text"
                         value={customSpecies}
                         onChange={(e) => setCustomSpecies(e.target.value)}
-                        placeholder="Override species (e.g., Fraxinus excelsior)..."
+                        placeholder="Know its name? e.g. Fraxinus excelsior"
                         className="flex-1 rounded-[4px] border border-[#353525] bg-[#f7f2e4] px-2.5 py-1.5 text-xs text-[#18221b] placeholder:text-[#5c5848]"
                       />
                       <button
@@ -352,11 +346,11 @@ export default function InventoryDrawer({
               {/* Open-Weight AI Attribution */}
               <div className="space-y-1 text-xs text-[#3b3e30]">
                 <p>
-                  <strong>Open-Weight Vision AI:</strong>{" "}
+                  <strong>Craft behind the enchantment:</strong>{" "}
                   meta-llama/Llama-3.2-11B-Vision-Instruct &amp; BioCLIP 2.5
                 </p>
                 <p>
-                  <strong>Folklore Corpus:</strong> Global ethnobotany &amp;
+                  <strong>Sources of lore:</strong> Global ethnobotany &amp;
                   world mythological traditions
                 </p>
               </div>
@@ -367,14 +361,14 @@ export default function InventoryDrawer({
         {/* Footer Reset */}
         <div className="border-t border-[#353525] px-5 py-3 flex items-center justify-between bg-[#e9dec8]/50">
           <span className="text-[11px] text-[#5c5848]">
-            Stored locally in field ledger
+            Your ledger is kept on this device
           </span>
           <button
             type="button"
             onClick={onResetJourney}
             className="rounded-[4px] border border-[#8b382c] px-3 py-1 text-xs font-medium text-[#8b382c] hover:bg-[#8b382c] hover:text-[#f6e6d9] transition"
           >
-            Reset Ledger
+            Begin Anew — Clear Ledger
           </button>
         </div>
       </div>

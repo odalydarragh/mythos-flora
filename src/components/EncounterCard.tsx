@@ -77,12 +77,12 @@ export default function EncounterCard({
               <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-amber-300">
                 {plant.confidence === "low"
                   ? "The Spirit Needs a Closer Look"
-                  : "Closer Diagnostic Photo Recommended"}
+                  : "The Spirit Asks for a Closer Look"}
               </span>
               <p className="text-xs text-amber-50/95 leading-relaxed">
                 {closerLookGuidance ||
                   plant.missingDiagnosticTraits ||
-                  "To confirm the exact species without guessing, step closer and photograph a diagnostic detail such as the stem buds, leaf attachment, or bark."}
+                  "To confirm the exact species without guessing, step closer and photograph a telling detail such as the stem buds, leaf attachment, or bark."}
               </p>
             </div>
           </div>
@@ -94,7 +94,7 @@ export default function EncounterCard({
               className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-bold text-forest-950 shadow-md hover:bg-amber-300 active:scale-[0.99] transition"
             >
               <Camera className="h-4 w-4" />
-              <span>Snap Closer Picture (Buds / Bark / Leaf Base)</span>
+              <span>Photograph Closer Picture (Buds / Bark / Leaf Base)</span>
             </button>
           )}
         </div>
@@ -153,7 +153,7 @@ export default function EncounterCard({
             {plant.bioClipCandidates && plant.bioClipCandidates.length > 0 && (
               <div className="space-y-1.5 pt-1.5 border-t border-forest-800/80">
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-moss-400">
-                  BioCLIP 2.5 Plant Classifier Matches (4,271 Species • Tap to Select):
+                  Possible kin — choose a name to seek its tale:
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {plant.bioClipCandidates.slice(0, 4).map((c) => {

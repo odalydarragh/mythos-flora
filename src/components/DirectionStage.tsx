@@ -50,7 +50,7 @@ export default function DirectionStage({
         className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-forest-600 to-forest-500 px-5 py-4 text-sm font-semibold text-parchment-50 shadow-lg border border-parchment-300/30 hover:from-forest-500 hover:to-forest-600 active:scale-[0.99] transition"
       >
         <Camera className="h-5 w-5 text-parchment-200" />
-        <span>Walk the Path & Snap Next Photo</span>
+        <span>Follow the Path</span>
       </button>
     </div>
   );

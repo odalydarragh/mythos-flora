@@ -61,7 +61,7 @@ export default function ChoiceList({
                         <>
                           <Lock className="h-3 w-3 text-amber-400" />
                           <span className="text-amber-200/90">
-                            Requires in bag: {choice.requiredItemName}
+                            Bring this token: {choice.requiredItemName}
                           </span>
                         </>
                       )}
@@ -69,7 +69,7 @@ export default function ChoiceList({
                   ) : (
                     <div className="inline-flex items-center gap-1 text-[11px] text-parchment-300/70">
                       <Compass className="h-3 w-3 text-parchment-400" />
-                      <span>Open Trail Choice</span>
+                      <span>The path is open</span>
                     </div>
                   )}
 
