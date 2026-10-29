@@ -16,6 +16,8 @@ interface EncounterRequestBody {
   inventory?: InventoryItem[];
   previousChoiceLabel?: string;
   previousDirection?: string;
+  previousStory?: string;
+  previousOutcome?: string;
   customObservation?: string;
 }
 
@@ -170,6 +172,8 @@ export async function POST(req: NextRequest) {
       inventory = [],
       previousChoiceLabel,
       previousDirection,
+      previousStory,
+      previousOutcome,
       customObservation,
     } = body;
 
@@ -214,6 +218,8 @@ export async function POST(req: NextRequest) {
       inventory,
       previousChoiceLabel,
       previousDirection,
+      previousStory,
+      previousOutcome,
       customObservation,
       bioClipCandidates,
     });
