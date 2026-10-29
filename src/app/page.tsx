@@ -397,7 +397,7 @@ export default function MythosFloraPage() {
       }
     } catch (err) {
       console.error("Failed to summon botanical encounter:", err);
-      setCaptureError("The woodland spirit could not receive your photograph. Try offering it again.");
+      setCaptureError("The woodland spirit cannot answer just now. Your photograph is not the problem. Please try again shortly.");
       setChapters((prev) =>
         prev.map((ch) =>
           ch.turnNumber === turnNumber ? { ...ch, status: "capture" } : ch

@@ -4,8 +4,7 @@ import {
   buildUserPrompt,
   parseEncounterJson,
 } from "@/lib/prompt";
-import { classifyPlantWithBioClip } from "@/lib/plant-classifier";
-import { EncounterResponse, InventoryItem } from "@/types/game";
+import { InventoryItem } from "@/types/game";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -29,93 +28,11 @@ const FALLBACK_VISION_MODELS = [
 ];
 const DEFAULT_BASE_URL = "https://inference.do-ai.run/v1";
 
-/**
- * Honest fallback when inference is unreachable or unconfigured:
- * never fabricates a specific species like Pedunculate Oak, and instead asks
- * the player for a closer look while keeping the game loop playable.
- */
-function buildFallbackEncounter(
-  inventory: InventoryItem[],
-  reason: string
-): EncounterResponse {
-  return {
-    needsCloserLook: true,
-    closerLookGuidance:
-      "I can see the path ahead, but the trees and undergrowth are too distant to read their leaves or bark with certainty. Step right up to a single leaf, fern frond, or tree trunk and snap a closer picture so I can identify the exact species!",
-    sceneDescription:
-      "A winding woodland path bordered by tall trees and lush trailside greenery.",
-    plant: {
-      commonName: "Unidentified Woodland Flora (Closer Look Needed)",
-      scientificName: "Species indistinct at this distance",
-      confidence: "low",
-      visualTraits:
-        "Canopy foliage and tree trunks visible along the trail, but individual leaf margins, venation, and bark fissures require a close-up shot to confirm the species.",
-      oghamName: "Fidrad (᚛ᚃ᚜) — The Living Wood",
-    },
-    folklore: {
-      tradition: "World Botanical & Woodland Folklore",
-      title: "The Unwritten Herbarium Sheet",
-      loreText:
-        "Across world traditions—from Carpathian midsummer lore to Nordic sacred groves and Mediterranean herbal manuscripts—the forest reveals its myth only when a walker steps close enough to press a single leaf into memory.",
-    },
-    story: {
-      title: "Veiled Boughs Along the Trail",
-      narrative:
-        "You stand upon an earthen path winding deeper into the green canopy. Around you, tall trunks and shimmering leaves rustle in the breeze, their true names hidden by distance. The Spirit of the Wood stirs beside your shoulder, peering toward the foliage at the edge of the trail.",
-      spiritPrompt:
-        "\"My eyes see the road before us, wanderer, yet the trees keep their counsel from afar. Will you step closer and show me a single leaf or bark up close, or gather a token from the path before walking on?\"",
-    },
-    forageQuest: {
-      ritualPrompt:
-        "While you approach the trees for a closer look, pick up a Fallen Trail Leaf or small twig from the path edge to carry in your satchel.",
-      primaryItem: {
-        id: "fallen-trail-leaf",
-        name: "Fallen Trail Leaf",
-        description:
-          "A leaf resting beside the footpath, waiting to be examined up close.",
-        symbol: "leaf",
-        originPlant: "Woodland Trail",
-      },
-      substituteItem: {
-        id: "weather-worn-pebble",
-        name: "Weather-Worn Path Pebble",
-        description:
-          "A smooth stone from the earthen trail, accepted by the spirit of the path.",
-        symbol: "sparkles",
-        originPlant: "Forest Path",
-      },
-    },
-    choices: [
-      {
-        id: "choice-closer-ritual",
-        label:
-          inventory.length > 0
-            ? `Hold your ${inventory[0].name} and step up to a single tree for a closer look`
-            : "Tuck the Fallen Trail Leaf into your satchel and approach a tree trunk",
-        outcomeText:
-          "With a token of the trail in hand, the woodland spirit guides your eyes toward the nearest low-hanging leaves and textured bark.",
-        requiredItemId:
-          inventory.length > 0 ? inventory[0].id : "fallen-trail-leaf",
-        requiredItemName:
-          inventory.length > 0 ? inventory[0].name : "Fallen Trail Leaf",
-        compassDirection: "Toward the nearest tree or plant on the path edge",
-        pathPrompt:
-          "Walk right up to a single tree trunk, shrub, or ground plant beside the trail and take a close-up photo of its leaves or bark.",
-      },
-      {
-        id: "choice-walk-closer",
-        label: "Step off the center of the path to inspect a leaf up close",
-        outcomeText:
-          "You move toward the verdant edge of the trail where individual leaves and stems come into sharp focus.",
-        requiredItemId: null,
-        requiredItemName: null,
-        compassDirection: "Along the leafy verge of the trail",
-        pathPrompt:
-          "Get within 1-2 feet of a leaf, fern, or bark surface and snap a clear close-up photo.",
-      },
-    ],
-    modelUsed: `${DEFAULT_MODEL} (${reason})`,
-  };
+function encounterUnavailable(code: string, status: number) {
+  return NextResponse.json({
+    code,
+    error: "The woodland spirit cannot answer just now. Your photograph is not the problem. Please try again shortly.",
+  }, { status });
 }
 
 async function callDigitalOceanVision(
@@ -124,10 +41,12 @@ async function callDigitalOceanVision(
   model: string,
   systemPrompt: string,
   userPrompt: string,
-  imageDataUrl: string
+  imageDataUrl: string,
+  signal: AbortSignal
 ) {
   return fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
+    signal,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
@@ -163,6 +82,8 @@ async function callDigitalOceanVision(
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
+  // One budget for all attempts and response-body reads, below Vercel’s limit.
+  const signal = AbortSignal.timeout(50_000);
 
   try {
     const body = (await req.json()) as EncounterRequestBody;
@@ -199,18 +120,20 @@ export async function POST(req: NextRequest) {
         ? DEFAULT_MODEL
         : configuredModel;
 
-    // Stage 1: Specialized Open-Weight Plant Classifier (BioCLIP 2.5 Mobile FastViT, 4,271 species)
-    const bioClipCandidates = await classifyPlantWithBioClip(imageDataUrl, 5);
-
     if (!apiKey || apiKey === "your_digitalocean_model_access_key_here") {
-      const fallback = buildFallbackEncounter(
-        inventory,
-        "Demo Fallback - Set DO_INFERENCE_API_KEY"
-      );
-      fallback.plant.bioClipCandidates = bioClipCandidates;
-      fallback.latencyMs = Date.now() - startTime;
-      return NextResponse.json(fallback);
+      console.error("[Mythos Flora] Missing inference credentials: configure DO_INFERENCE_API_KEY.");
+      return encounterUnavailable("INFERENCE_NOT_CONFIGURED", 503);
     }
+
+    // WASM startup/downloads can consume a serverless request before vision runs.
+    // Explicitly enable only on deployments provisioned for local classification.
+    const useBioClip = process.env.ENABLE_BIOCLIP === "true" ||
+      (process.env.ENABLE_BIOCLIP !== "false" && !process.env.VERCEL);
+    const bioClipCandidates = useBioClip
+      ? await (await import("@/lib/plant-classifier")).classifyPlantWithBioClip(imageDataUrl, 5)
+      : [];
+    signal.throwIfAborted();
+    console.info(`[Mythos Flora] Vision starting after ${Date.now() - startTime}ms; BioCLIP=${useBioClip}`);
 
     const systemPrompt = buildSystemPrompt();
     const userPrompt = buildUserPrompt({
@@ -240,7 +163,8 @@ export async function POST(req: NextRequest) {
         candidate,
         systemPrompt,
         userPrompt,
-        imageDataUrl
+        imageDataUrl,
+        signal
       );
 
       if (response.ok) {
@@ -249,8 +173,10 @@ export async function POST(req: NextRequest) {
 
       lastErrorText = await response.text().catch(() => "Unknown API error");
       console.warn(
-        `[Mythos Flora] Model '${candidate}' returned ${response.status}: ${lastErrorText}`
+        `[Mythos Flora] Model '${candidate}' returned ${response.status} after ${Date.now() - startTime}ms`
       );
+      // Changing models cannot repair credentials, rate limits, or an outage.
+      if (![400, 404].includes(response.status)) break;
     }
 
     if (!response || !response.ok) {
@@ -258,12 +184,7 @@ export async function POST(req: NextRequest) {
         `[Mythos Flora] DigitalOcean Serverless Inference failed across candidates:`,
         lastErrorText
       );
-      const fallback = buildFallbackEncounter(
-        inventory,
-        `Resilient Fallback (HTTP ${response?.status || 500})`
-      );
-      fallback.latencyMs = Date.now() - startTime;
-      return NextResponse.json(fallback);
+      return encounterUnavailable("INFERENCE_UNAVAILABLE", 502);
     }
 
     const data = await response.json();
@@ -271,14 +192,16 @@ export async function POST(req: NextRequest) {
 
     const encounter = parseEncounterJson(rawContent, inventory);
     encounter.plant.bioClipCandidates = bioClipCandidates;
-    encounter.modelUsed = `BioCLIP-2.5 + ${activeModel}`;
+    encounter.modelUsed = bioClipCandidates.length ? `BioCLIP-2.5 + ${activeModel}` : activeModel;
     encounter.latencyMs = Date.now() - startTime;
 
     return NextResponse.json(encounter);
   } catch (error) {
+    if (signal.aborted) {
+      console.warn(`[Mythos Flora] Inference deadline exceeded after ${Date.now() - startTime}ms`);
+      return encounterUnavailable("INFERENCE_TIMEOUT", 503);
+    }
     console.error("[Mythos Flora] Encounter processing error:", error);
-    const fallback = buildFallbackEncounter([], "Offline / Resilient Mode");
-    fallback.latencyMs = Date.now() - startTime;
-    return NextResponse.json(fallback);
+    return encounterUnavailable("ENCOUNTER_FAILED", 502);
   }
 }
