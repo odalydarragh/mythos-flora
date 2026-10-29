@@ -7,7 +7,7 @@ import {
 import { InventoryItem } from "@/types/game";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 180;
 
 interface EncounterRequestBody {
   imageDataUrl: string;
@@ -83,7 +83,7 @@ async function callDigitalOceanVision(
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
   // One budget for all attempts and response-body reads, below Vercel’s limit.
-  const signal = AbortSignal.timeout(50_000);
+  const signal = AbortSignal.timeout(165_000);
 
   try {
     const body = (await req.json()) as EncounterRequestBody;

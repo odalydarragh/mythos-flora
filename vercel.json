@@ -3,7 +3,7 @@
   "framework": "nextjs",
   "functions": {
     "src/app/api/encounter/route.ts": {
-      "maxDuration": 60
+      "maxDuration": 180
     }
   }
 }
